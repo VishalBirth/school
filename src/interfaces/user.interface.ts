@@ -1,17 +1,11 @@
 import * as mongoose from 'mongoose';
+
 export interface IUser {
-  profile : {
-      createdAt: Date;
-      email : string;
-      userName : string;
-  };
-  data : {
-    oauth : string, 
-    cart : [{
-      product : mongoose.Schema.Types.ObjectId,
-      quantity : number
-    }]
-  }
+    createdAt: Date;
+    email : string;
+    username : string;
+    type : number;
+    password : string;
 }
 
 export interface IUserDocument extends  IUser, mongoose.Document {

@@ -1,17 +1,12 @@
-import { IProductModel } from './product.model';
-import { ICategoryModel } from './category.model';
 import { Model, Connection } from 'mongoose';
-import { IUserModel } from "./user.model";
+import { IUserModel, userSchema } from "./user.model";
 //importing schemas
-import { userSchema } from "../models/user.model"; //import userSchema
-import { categorySchema } from "../models/category.model"; //import userSchema
-import { productSchema } from "../models/product.model"; //import userSchema
+import { ICourseModel, courseSchema } from "./course.model";
 
 
 export interface IModel extends Object {
     user: IUserModel;
-    category : ICategoryModel;
-    product : IProductModel
+    course : ICourseModel;
 }
 
 
@@ -21,9 +16,7 @@ export class ModelCreation {
 
         // attaching models to the connection 
         model.user = <IUserModel>(connection.model("User",  userSchema))
-        model.category = <ICategoryModel>(connection.model("Category", categorySchema))
-        model.product = <IProductModel>(connection.model("Product", productSchema))
-        
+        model.course = <ICourseModel>(connection.model("Course", courseSchema))
         return model;
     }
 }

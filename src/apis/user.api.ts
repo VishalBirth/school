@@ -4,7 +4,11 @@ import * as mongoose from 'mongoose';
 import { DatabaseConnection } from '../utilities/databaseconnection';
 import { IModel } from '../models/model';
 import {Router, Request, Response} from "express";
+import { HelpingFunctions } from '../utilities/helpingFunctions';
+import { MailSender } from '../utilities/mailSender';
+var config = require("../../config.json") //import config file
 
+var jwt    = require('jsonwebtoken');
 export class User{
     
     private router : express.Router
@@ -17,74 +21,68 @@ export class User{
     public getRouter(): express.Router{
         return this.router;
     }
-    // private fboutput(req : Request, res : Response){
-    //     FB.settings.setSecret('6fefa341f0bde9402c75894ad9c26be3');
-    //     FB.settings.setClientId('644197232449850');
-    //     res.send("hi.. output is on console.")
-    // }
-
     private setRoutes(){
         this.router.get('/', this.getUsers);
-        // this.router.get('/fboutput', this.fboutput)
+        this.router.post('/', this.addUser);
+        this.router.put('/:userId', this.activateUser);
+        this.router.post('/login', this.loginUser);        
 
-//        this.setUpAuth( this.router);
-        // this.router.use(require("express-session")({
-        //      secret : "VishalKumar"
-        // }))
-        // this.router.use(passport.initialize());
-        // this.router.use(passport.session());
-        // this.router.get("/hi", (req, res)=>{res.send("Really!")})
-        // this.router.get("/auth/facebook", passport.authenticate('facebook', {scope : ['email']}));
-        // this.router.get("/auth/facebook/callback", passport.authenticate('facebook', {failureRedirect : '/fail'}), (req, res)=>{
-        //     res.send("Welcome "+ req.user.profile.username);
-        // })
-
-        // this.router.post('/auth/facebook/token',
-        //     passport.authenticate('facebook-token'),
-        //     function (req, res) {
-        //     // do something with req.user
-        //         res.send(req.user? 200 : 401);
-        //     }
-        // );
     }
 
     private getUsers(req : Request, res : Response){
         var model = DatabaseConnection.getModels();
         model.user.findAll().exec().then((output)=>{
-            res.send(output);
+            res.send(HelpingFunctions.successResponse("users", output));
         })
     }
-   /* private setUpAuth( app : express.Router){
-         var User = DatabaseConnection.getModels().user
-        passport.serializeUser((user, done)=>{
-            done(null, user["_id"]);
-        });
-        passport.deserializeUser((id, done)=>{
-            User.findOne({_id : id}).exec(done);
+    private activateUser(req: Request, res : Response){
+        var userId = req.params.userId
+        var model = DatabaseConnection.getModels();
+        model.user.findByIdAndUpdate(userId, {$set: {isActive: true}}, {new: true}).exec().then(user=>{
+            var token = jwt.sign(user, config.secret, {});
+            res.send(HelpingFunctions.successResponseWithToken("Your account has been verified", user, token));
         })
-        passport.use(new FacebookTokenStrategy(
-            {
-                clientID : "644197232449850", 
-                clientSecret : "6fefa341f0bde9402c75894ad9c26be3"
-                ,callbackURL : "http://localhost:2000/user/auth/facebook/callback"
-            }, function(accessToken , refrestToken, profile, done){
-                if(!profile.emails || !profile.emails.length){
-                    return done('No email are associated with this account.')
+    }
+    private addUser(req: Request, res: Response){
+        var username = req.body.username
+        var email = req.body.email;
+        var password = req.body.password;
+        var usertype = req.body.usertype;
+        if(typeof email != 'undefined' && HelpingFunctions.validateEmail(email)){
+            var model = DatabaseConnection.getModels();
+            model.user.findOne({email : email}).exec().then(userExist=>{
+                if(userExist != null){
+                    res.send(HelpingFunctions.failureResponse("Your account already exist"))
+                }else{
+                    var user = new model.user({
+                        username: username,
+                        email : email, 
+                        password : password, 
+                        type : usertype
+                    })
+                    user.save().then( output => {
+                        MailSender.sendMail(res, email)
+                    }, HelpingFunctions.handleError(res))
                 }
-
-                User.findOneAndUpdate(
-                    {'data.oauth' : profile.id},
-                    {
-                        $set:{
-                            'profile.username' : profile.emails[0].value, 
-                            'profile.picture' : 'http://graph.facebook.com/'+profile.id.toString()+'/picture?type=large'                            
-                        }
-                    }, 
-                    { 'new': true, upsert : true, runValidators: true}, 
-                    (err, user)=>{done(err, user);}
-                )
-            }
-        ))
+            }, HelpingFunctions.handleError(res))
+        }else{res.send(HelpingFunctions.failureResponse("Error"))}
     }
-    */
+    private loginUser(req : Request, res : Response){
+        var email = req.body.email
+        var password = req.body.password
+        var model = DatabaseConnection.getModels();
+        if(typeof email == 'undefined'){
+            res.send(HelpingFunctions.failureResponse("Error! no email"))
+        }else{
+            model.user.findOne({email : email}).exec().then(user=>{
+                if(user.password == password){
+                    var token = jwt.sign(user, config.secret, {});
+                    // return the information including token as JSON
+                    res.send(HelpingFunctions.successResponseWithToken("Logined",user, token))
+                }else{
+                    res.send(HelpingFunctions.failureResponse("wrong pass"))
+                }
+            }, HelpingFunctions.handleError(res))
+        }
+    }
 }

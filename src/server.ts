@@ -1,6 +1,3 @@
-import { Product } from './apis/product.api';
-import { Category } from './apis/category.api';
-import { User } from './apis/user.api';
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as express from "express";
@@ -12,7 +9,7 @@ var config = require("../config.json") //import config file
 import mongoose = require("mongoose"); //import mongoose
 
 //api 
-import { API } from './apis/api';
+import { Routes } from './routes/routes';
 
 //interfaces
 import { IUser } from "./interfaces/user.interface"; //import IUser
@@ -72,15 +69,7 @@ export class Server {
    * @method api
    */
   public setupRoutes() {
-    this.app.use("/",(new API).getRouter());
-    this.app.use("/user/", (new User).getRouter());
-    this.app.use("/category/", (new Category).getRouter());
-    this.app.use("/product/", (new Product).getRouter());
-    this.app.use( function (req, res, next){
-        console.log(res.send("hehehehe"));
-        next();
-    })
-    
+            this.app.use("/",(new Routes).getRouter());
   }
  
   /**

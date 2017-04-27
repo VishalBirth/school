@@ -2,26 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 exports.userSchema = new mongoose_1.Schema({
-    profile: {
-        createdAt: Date,
-        email: { type: String, required: true, lowercase: true },
-        userName: { type: String, required: true, lowercase: true }
-    },
-    data: {
-        oauth: { type: String, required: true },
-        cart: [{
-                product: mongoose_1.Schema.Types.ObjectId,
-                quantity: {
-                    type: Number,
-                    default: 1,
-                    min: 1
-                }
-            }]
-    }
+    createdAt: Date,
+    email: { type: String, required: true, lowercase: true },
+    password: { type: String, required: true },
+    isActive: { type: Boolean, default: false },
+    type: Number
 });
 exports.userSchema.pre("save", function (next) {
-    if (!this.profile.createdAt) {
-        this.profile.createdAt = new Date();
+    if (!this.createdAt) {
+        this.createdAt = new Date();
     }
     next();
 });

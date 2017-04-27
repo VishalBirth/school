@@ -9,27 +9,16 @@ export interface IUserModel extends mongoose.Model<IUserDocument> {
 }
 
 export var userSchema: Schema = new Schema({
-  profile : {
-      createdAt: Date,
-      email : {type : String, required : true, lowercase :  true},
-      userName : {type : String, required : true, lowercase :  true}
-  },
-  data : {
-    oauth : {type : String, required : true}, 
-    cart : [{
-      product : Schema.Types.ObjectId,
-      quantity : {
-        type : Number, 
-        default : 1, 
-        min : 1
-      } 
-    }]
-  }
+    createdAt: Date,
+    email : {type : String, required : true, lowercase :  true},
+    password : {type : String, required: true}, 
+    isActive : {type : Boolean, default: false}, 
+    type: Number
 });
 
 userSchema.pre("save", function(next) {
-  if (!this.profile.createdAt) {
-    this.profile.createdAt = new Date();
+  if (!this.createdAt) {
+      this.createdAt = new Date();
   }
   next();
 });
