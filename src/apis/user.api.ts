@@ -55,8 +55,12 @@ export class User{
         if(typeof email != 'undefined' && HelpingFunctions.validateEmail(email)){
             var model = DatabaseConnection.getModels();
             model.user.findOne({email : email}).exec().then(userExist=>{
-                if(userExist != null && userExist.isActive == true ){
-                    res.send(HelpingFunctions.failureResponse("Your account already exist"))
+                if(userExist != null   ){
+                    if(userExist.isActive == true){
+                        res.send(HelpingFunctions.failureResponse("Your account already exist"))
+                    }else{
+                        MailSender.sendMail(res, email)
+                    }
                 }else{
                     var user = new model.user({
                         username: username,
