@@ -67,12 +67,18 @@ export class Course{
     private addAttachment(req: Request, res : Response){
         var teacherId = req['decoded']._doc._id;
          var id = req.params.courseId
+         console.log("here")
         var model = DatabaseConnection.getModels()
         model.course.findById(id).exec().then(course=>{
-            course.attachments.push(req['file']);
-            course.save().then(newCourse=>{
-                res.send(HelpingFunctions.successResponse("Attachment added!", newCourse)) 
-            }, HelpingFunctions.handleError(res))
+            if(course !=null){
+                console.log(req['file'])
+                course.attachments.push(req['file']);
+                course.save().then(newCourse=>{
+                    res.send(HelpingFunctions.successResponse("Attachment added!", newCourse)) 
+                }, HelpingFunctions.handleError(res))
+            }else{
+                res.send(HelpingFunctions.failureResponse("Course Not Found"));
+            }
         }, HelpingFunctions.handleError(res))
     }
     private getCourses(req : Request, res: Response){
@@ -105,10 +111,14 @@ export class Course{
         var id = req.params.courseId
         var model = DatabaseConnection.getModels()
         model.course.findById(id).exec().then(course=>{
-            course.students.push(req['decoded']._doc._id);
-            course.save().then(output=>{
-                res.send(HelpingFunctions.successResponse("Assigned to the course!", output))
-            }, HelpingFunctions.handleError(res))
+            if(course != null){
+                course.students.push(req['decoded']._doc._id);
+                course.save().then(output=>{
+                    res.send(HelpingFunctions.successResponse("Assigned to the course!", output))
+                }, HelpingFunctions.handleError(res))
+            }else{
+                res.send(HelpingFunctions.failureResponse("Error! Course not found"))
+            }
         }, HelpingFunctions.handleError(res))
     }
 

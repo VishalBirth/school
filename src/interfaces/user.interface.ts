@@ -5,6 +5,7 @@ export interface IUser {
     email : string;
     username : string;
     type : number;
+    isActive : boolean;
     password : string;
 }
 

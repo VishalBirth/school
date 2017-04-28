@@ -13,8 +13,8 @@ export class MailSender{
             port: 465,
             secure: true, // use SSL
             auth: {
-                user: 'colgatefolio3@gmail.com',
-                pass: 'colgatefolio3@'
+                user: 'vishalfreelancing32@gmail.com',
+                pass: 'Freelancing'
             },
             tls: { rejectUnauthorized: false }
         };

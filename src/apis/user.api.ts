@@ -39,8 +39,12 @@ export class User{
         var userId = req.params.userId
         var model = DatabaseConnection.getModels();
         model.user.findByIdAndUpdate(userId, {$set: {isActive: true}}, {new: true}).exec().then(user=>{
-            var token = jwt.sign(user, config.secret, {});
-            res.send(HelpingFunctions.successResponseWithToken("Your account has been verified", user, token));
+            if(user != null){
+                var token = jwt.sign(user, config.secret, {});
+                res.send(HelpingFunctions.successResponseWithToken("Your account has been verified", user, token));
+            }else{
+                res.send(HelpingFunctions.failureResponse("Incorrect Code! Please try again!"))
+            }
         })
     }
     private addUser(req: Request, res: Response){
@@ -51,7 +55,7 @@ export class User{
         if(typeof email != 'undefined' && HelpingFunctions.validateEmail(email)){
             var model = DatabaseConnection.getModels();
             model.user.findOne({email : email}).exec().then(userExist=>{
-                if(userExist != null){
+                if(userExist != null && userExist.isActive == true ){
                     res.send(HelpingFunctions.failureResponse("Your account already exist"))
                 }else{
                     var user = new model.user({
@@ -65,22 +69,22 @@ export class User{
                     }, HelpingFunctions.handleError(res))
                 }
             }, HelpingFunctions.handleError(res))
-        }else{res.send(HelpingFunctions.failureResponse("Error"))}
+        }else{res.send(HelpingFunctions.failureResponse("Error! Please provide correct email address!"))}
     }
     private loginUser(req : Request, res : Response){
         var email = req.body.email
         var password = req.body.password
         var model = DatabaseConnection.getModels();
         if(typeof email == 'undefined'){
-            res.send(HelpingFunctions.failureResponse("Error! no email"))
+            res.send(HelpingFunctions.failureResponse("Error! Email not found"))
         }else{
             model.user.findOne({email : email}).exec().then(user=>{
-                if(user.password == password){
+                if(user!= null && user.password == password){
                     var token = jwt.sign(user, config.secret, {});
                     // return the information including token as JSON
                     res.send(HelpingFunctions.successResponseWithToken("Logined",user, token))
                 }else{
-                    res.send(HelpingFunctions.failureResponse("wrong pass"))
+                    res.send(HelpingFunctions.failureResponse("Incorrect email/password"))
                 }
             }, HelpingFunctions.handleError(res))
         }

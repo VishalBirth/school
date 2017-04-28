@@ -50,12 +50,19 @@ class Course {
     addAttachment(req, res) {
         var teacherId = req['decoded']._doc._id;
         var id = req.params.courseId;
+        console.log("here");
         var model = databaseconnection_1.DatabaseConnection.getModels();
         model.course.findById(id).exec().then(course => {
-            course.attachments.push(req['file']);
-            course.save().then(newCourse => {
-                res.send(helpingFunctions_1.HelpingFunctions.successResponse("Attachment added!", newCourse));
-            }, helpingFunctions_1.HelpingFunctions.handleError(res));
+            if (course != null) {
+                console.log(req['file']);
+                course.attachments.push(req['file']);
+                course.save().then(newCourse => {
+                    res.send(helpingFunctions_1.HelpingFunctions.successResponse("Attachment added!", newCourse));
+                }, helpingFunctions_1.HelpingFunctions.handleError(res));
+            }
+            else {
+                res.send(helpingFunctions_1.HelpingFunctions.failureResponse("Course Not Found"));
+            }
         }, helpingFunctions_1.HelpingFunctions.handleError(res));
     }
     getCourses(req, res) {
@@ -88,10 +95,15 @@ class Course {
         var id = req.params.courseId;
         var model = databaseconnection_1.DatabaseConnection.getModels();
         model.course.findById(id).exec().then(course => {
-            course.students.push(req['decoded']._doc._id);
-            course.save().then(output => {
-                res.send(helpingFunctions_1.HelpingFunctions.successResponse("Assigned to the course!", output));
-            }, helpingFunctions_1.HelpingFunctions.handleError(res));
+            if (course != null) {
+                course.students.push(req['decoded']._doc._id);
+                course.save().then(output => {
+                    res.send(helpingFunctions_1.HelpingFunctions.successResponse("Assigned to the course!", output));
+                }, helpingFunctions_1.HelpingFunctions.handleError(res));
+            }
+            else {
+                res.send(helpingFunctions_1.HelpingFunctions.failureResponse("Error! Course not found"));
+            }
         }, helpingFunctions_1.HelpingFunctions.handleError(res));
     }
 }
